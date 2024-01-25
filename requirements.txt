@@ -1,5 +1,5 @@
 streamlit
-streamlit_antd_components
+streamlit-antd-components
 pandas
 numpy
 matplotlib
