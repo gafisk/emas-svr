@@ -23,6 +23,7 @@ with st.sidebar:
         sac.MenuItem('Normalisasi', icon="bar-chart-line"),
         sac.MenuItem('Split Data', icon="hourglass-split"),
         sac.MenuItem('SVR', icon="activity"),
+        sac.MenuItem('Prediksi', icon="sliders"),
     ], open_all=False)
 
 if selected == "Home":
@@ -93,25 +94,24 @@ if selected == "Split Data":
 
 if selected == "SVR":
     st.title("Prediksi dengen SVR")
+    if st.session_state.n is None:
+        st.session_state.n = 8
     split = split_data(st.session_state.n)
     st.subheader("Panjang Timestep")
-    t = st.slider('', min_value=5, max_value=15, value=5, step=5)
+    t = st.slider('', min_value=4, max_value=6, value=4, step=2)
     sac.divider(label='PARAMETER SVR', icon='ubuntu', align='center', color='gray')
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     with col1:
         st.subheader("C")
-        c = st.slider('', min_value=5, max_value=20, value=10, step=5)
+        c = st.slider('', min_value=5, max_value=15, value=10, step=5)
     with col2:
         st.subheader("Gamma")
-        gamma = st.slider('', min_value=5, max_value=20, value=5, step=5)
+        gamma = st.slider('', min_value=5, max_value=15, value=5, step=5)
     with col3:
         st.subheader("Epsilon")
-        epsilon = st.slider('', min_value=0.1, max_value=1.0, value=0.1, step=0.2, format="%.1f")
-    with col4:
-        st.subheader("Degree")
-        degree = st.slider('', min_value=3, max_value=12, value=3, step=3)
-    st.subheader("Kernel")
-    kernel = st.selectbox("",("linear", "poly", "rbf", "sigmoid"), index=None, placeholder="Kernel SVR",)
+        epsilon = st.slider('', min_value=0.1, max_value=0.9, value=0.1, step=0.2, format="%.1f")   
+    degree = 3
+    kernel = "poly"
     if c == None:
         c = 10
     if gamma == None:
@@ -120,8 +120,6 @@ if selected == "SVR":
         epsilon = 0.1
     if degree == None:
         degree = 3
-    if kernel == None:
-        kernel = "poly"
     sac.divider(label='Keterangan Parameter', icon='ubuntu', align='center', color='gray')
     g1, g2, g3, g4, g5, g6 = st.columns(6)
     # g5, g6 = st.columns(2)
@@ -147,9 +145,10 @@ if selected == "SVR":
     if st.button("Proses"):
         st.subheader("Nilai Mape")
         model = svr(st.session_state.n, t, c, gamma, epsilon, degree, kernel)
-        st.subheader(f"Nilai Mape = {round(model[0],2)}")
+        st.subheader(f"Nilai Mape = {round(model[0],4)}")
         data_real = np.array(model[1])
         hasil_prediksi = np.array(model[2])
+        chart_data = {"Data Real": data_real, "Hasil Prediksi": hasil_prediksi}
         plt.figure(figsize=(16, 8))
         plt.plot(data_real)
         plt.plot(hasil_prediksi)
@@ -159,5 +158,34 @@ if selected == "SVR":
         plt.legend(['Real', 'Prediksi'])
         plt.grid()
         st.pyplot(plt.gcf())
+        # h1, h2 = st.columns(2)
+        # with h1:
+        #     st.subheader("Data Asli")
+        #     st.dataframe(data_real)
+        # with h2:
+        #     st.subheader("Data Prediksi")
+        #     st.dataframe(hasil_prediksi)
+
+if selected == "Prediksi":
+    st.title("Menu Prediksi Data")
+    days = day()[0]
+    besok = day()[1]
+    col1, col2 = st.columns(2)
+    col3, col4 = st.columns(2)
+    input_data = {}
+    with col1:
+        input_data['num1'] = st.number_input(f"Masukkan Data Emas Tanggal {days[-4]}")
+    with col2:
+        input_data['num2'] = st.number_input(f"Masukkan Data Emas Tanggal {days[-3]}")
+    with col3:
+        input_data['num3'] = st.number_input(f"Masukkan Data Emas Tanggal {days[-2]}")
+    with col4:
+        input_data['num4'] = st.number_input(f"Masukkan Data Emas Tanggal {days[-1]}")
     
-    
+    if st.button("Prediksi"):
+        temp_data = [input_data[f'num{i}'] for i in range(1, 5)]
+        data = [temp_data]
+        pred = prediksi(data)
+        st.subheader(f"Hasil Prediksi Emas Tanggal {besok}")
+        hasil = '{:,.0f}'.format(pred).replace(',', '.')
+        st.subheader(f"Rp. {hasil}")

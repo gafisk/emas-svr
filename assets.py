@@ -5,6 +5,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.svm import SVR
 from sklearn.metrics import mean_absolute_percentage_error
 from sklearn.preprocessing import MinMaxScaler
+import pickle
+from datetime import datetime, timedelta
 
 scaler = MinMaxScaler(feature_range=(0, 1))
 def dataset():
@@ -51,6 +53,27 @@ def svr(n, t, c, gamma, epsilon, degree, kernel):
     mape = mean_absolute_percentage_error(y_test, y_pred)
 
     return mape*100, y_test, y_pred
+
+def prediksi(datas):
+    new_data = np.array(datas)
+    with open("model.pkl", 'rb') as model_file:
+        loaded_model = pickle.load(model_file)
+    new_data_normalized = scaler.fit_transform(new_data.reshape(-1, 1))
+    new_data_timesteps = create_timesteps(new_data_normalized, 3)
+    predictions = loaded_model.predict(new_data_timesteps)
+    predictions_original_scale = scaler.inverse_transform(predictions.reshape(-1, 1))
+    return int(predictions_original_scale[-1])
+
+def day():
+    temp_day = []
+    today = datetime.now()
+    tomorrow = today + timedelta(days=1)
+    five_days_ago = today - timedelta(days=5)
+    date_range = [five_days_ago + timedelta(days=i) for i in range(6)]
+    formatted_dates = [date.strftime('%d/%m/%Y') for date in date_range]
+    for formatted_date in formatted_dates:
+        temp_day.append(formatted_date)
+    return temp_day, tomorrow.strftime('%d/%m/%Y')
 
 
     
