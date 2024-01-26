@@ -5,5 +5,5 @@ numpy
 matplotlib
 scikit-learn
 openpyxl
-pickle
+
 datetime
